@@ -1,4 +1,6 @@
-﻿namespace Library
+﻿using System.Reflection;
+
+namespace Library
 {
     internal class Program
     {
@@ -9,6 +11,8 @@
         {
             // showing hungarian letters
             Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            #region Adding Novels
             _opus.Add(new Novel()
             {
                 Title = "Kincskereső kisködmön",
@@ -43,6 +47,7 @@
                 Pages = 8,
                 Language = "hu"
             }, 3);
+            #endregion
 
             do
             {
@@ -84,20 +89,39 @@
         public static void Listing()
         {
             Console.WriteLine("\n\nJelenlegi művek:");
-            // var -t csak akkor lehet használni, ha pontosan megtudja állapítani az értékét
-            // ez nem lehetséges var a; de ez jó var a = 1;
-            string sor = _SetTextWidthLength("Cím", _GetMaxLength()) 
-                + _SetTextWidthLength("| Szerző", _GetMaxLength("author")) + "| Mennyiség:";
+            int maxTitleLength = _GetMaxLength("Title");
+            int maxAuthorLength = _GetMaxLength("Author");
+            int maxExpenditureLength = _GetMaxLength("Expenditure");
+            int maxPagesLength = _GetMaxLength("Pages");
+
+            string sor = _SetTextWidthLength("Cím", maxTitleLength) +
+                         _SetTextWidthLength("| Szerző", maxAuthorLength) + 
+                         _SetTextWidthLength("| Kiadás:", maxExpenditureLength) +
+                         _SetTextWidthLength("| Oldalak:", maxPagesLength);
+
             Console.WriteLine(sor);
+
             for (int i = 0; i < sor.Length; i++, Console.Write("-")) ;
             Console.WriteLine();
+
+            #region class variables
+            /* Title = "Kincskereső kisködmön",
+                Author = "Móra Ferenc",
+                Chapter = 24,
+                CoverType = ECoverType.Soft,
+                Expenditure = 1,
+                Genre = EGenre.Family,
+                ISBN = "273723654238426766835642",
+                Pages = 174, */
+            #endregion
 
             foreach (var o in _opus)
             {
                 Console.WriteLine(
-                    _SetTextWidthLength(""+o.Key.Title, _GetMaxLength()) +
-                    _SetTextWidthLength("| "+o.Key.Author, _GetMaxLength("author")) +
-                    _SetTextWidthLength("| "+o.Value, 6)
+                    _SetTextWidthLength(""+o.Key.Title, maxTitleLength) +
+                    _SetTextWidthLength("| "+o.Key.Author, maxAuthorLength) +
+                    _SetTextWidthLength("| "+o.Key.Expenditure, maxExpenditureLength) +
+                    _SetTextWidthLength("| "+o.Key.Pages, maxPagesLength)
                 );
             }
         }
@@ -111,28 +135,42 @@
             return text;
         }
 
-        /// <summary>
-        /// Ez egy dokumentáció ahány paraméterem van annyit fog beleirni
-        /// Házi feladat: kiegészíteni a metódust a Type osztály segítségével
-        /// </summary>
-        /// <param name="field"></param>
-        /// <returns></returns>
-        private static int _GetMaxLength(string field)
+        private static int _GetMaxLength(string propertyName)
         {
-            /*
-              GetMaxLength metódust ugy alakitsuk at, hogy a type osztajt hasznalva dinamikusan keresse ki az attributumokat
-              ha nem letezik a property akkor dobjon egy hibat
-              keresse ki az adott propertyt és adja vissza az értékét
-             
-             */
+            int length = 0;
+            foreach (var o in _opus)
+            {
+                int attrLength = (o.Key.GetType().GetProperty(propertyName).GetValue(o.Key, null) + "").Length;
+                if(attrLength > length)
+                {
+                    length = attrLength;
+                }
+            }
+            if (length == 1) length += 10;
+            return length;
+        }
 
+        private static int _GetMaxLength(object obj, string propertyName = "Title")
+        {
+            if (obj == null) return 0;
+            if (propertyName == null) return 0;
+            int length = (obj.GetType().GetProperty(propertyName)
+                        .GetValue(obj, null) + "").Length;
+
+            /* for enough space */
+            if (length == 1) length += 10;
+
+            return length;
+        }
+
+        #region oldGetMaxLength
+        /*private static int _GetMaxLength(string field)
+        {
             int length = 0;
             foreach (var item in _opus)
             {
                 if (field == "title")
                 {
-                    // ezeket cseréljem majd ki, csekkoljam le a fieldet 
-                    // fieldet keresem meg a type osztállyal
                     if (item.Key.Title.Length > length)
                     {
                         length = item.Key.Title.Length;
@@ -147,12 +185,13 @@
                 }
             }
             return length;
-        }
+        }*/
+        #endregion
 
-        private static int _GetMaxLength()
+        /*private static int _GetMaxLength()
         { 
             return _GetMaxLength("title");
-        }
+        }*/
 
         public static void Add()
         {
