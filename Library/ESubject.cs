@@ -10,7 +10,7 @@ namespace Library
     public enum ESubject
     {
         [Description("Történelmi")]
-        Historical,
+        Historical = 1,
         [Description("Természeti")]
         Natural,
         [Description("Geológikus")]

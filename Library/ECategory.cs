@@ -10,7 +10,7 @@ namespace Library
     public enum ECategory
     {
         [Description("Szuperhős")]
-        Superhero,
+        Superhero = 1,
         [Description("Vígjáték")]
         Comedy,
         [Description("Egyéb")]

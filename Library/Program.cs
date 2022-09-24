@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 
 namespace Library
 {
@@ -59,28 +60,26 @@ namespace Library
                     case ConsoleKey.NumPad1:
                     case ConsoleKey.D1:
                         Listing();
-                        return;
                         break;
 
                     case ConsoleKey.NumPad2:
                     case ConsoleKey.D2:
                         Add();
-                        return;
                         break;
 
                     case ConsoleKey.NumPad3:
                     case ConsoleKey.D3:
                         Remove();
-                        return;
                         break;
 
                     case ConsoleKey.NumPad4:
                     case ConsoleKey.D4:
-                        Console.WriteLine("Bye bye");
                         return;
+                        Console.WriteLine("Bye bye");
                         break;
 
                     default:
+
                         break;
                 }
             } while (true);
@@ -103,17 +102,6 @@ namespace Library
 
             for (int i = 0; i < sor.Length; i++, Console.Write("-")) ;
             Console.WriteLine();
-
-            #region class variables
-            /* Title = "Kincskereső kisködmön",
-                Author = "Móra Ferenc",
-                Chapter = 24,
-                CoverType = ECoverType.Soft,
-                Expenditure = 1,
-                Genre = EGenre.Family,
-                ISBN = "273723654238426766835642",
-                Pages = 174, */
-            #endregion
 
             foreach (var o in _opus)
             {
@@ -140,7 +128,7 @@ namespace Library
             int length = 0;
             foreach (var o in _opus)
             {
-                int attrLength = (o.Key.GetType().GetProperty(propertyName).GetValue(o.Key, null) + "").Length;
+                int attrLength = (o.Key.GetType().GetProperty(propertyName)?.GetValue(o.Key, null) + "").Length;
                 if(attrLength > length)
                 {
                     length = attrLength;
@@ -188,14 +176,54 @@ namespace Library
         }*/
         #endregion
 
-        /*private static int _GetMaxLength()
-        { 
-            return _GetMaxLength("title");
-        }*/
-
         public static void Add()
         {
+            Opus opus = _CreateObject();
+            if (opus == null)
+            {
+                return;
+            }
 
+            if (opus.GetType() ==  typeof (Novel))
+            {
+                Novel novel = (Novel) opus;
+
+                /* Setting up properties */
+                Console.WriteLine("Kiválasztott típús: regény");
+                int genre = _RequestEnum(typeof(EGenre), "műfajt");
+                novel.Genre = (EGenre) genre;
+                _RequestParams(novel);
+            } 
+            else if (opus.GetType() == typeof (Encyclopedia))
+            {
+                Encyclopedia encyclopedia = (Encyclopedia) opus;
+
+                /* Setting up properties */
+                Console.WriteLine("Kiválasztott típús: enciklopédia");
+                int genre = _RequestEnum(typeof(EGenre), "műfajt");
+                encyclopedia.Genre = (EGenre)genre;
+                _RequestParams(encyclopedia);
+            }
+            else if (opus.GetType() == typeof (Magazine))
+            {
+                Magazine magazine = (Magazine) opus;
+
+                /* Setting up properties */
+                Console.WriteLine("Kiválasztott típús: újság");
+                int genre = _RequestEnum(typeof(EGenre), "műfajt");
+                magazine.Genre = (EGenre)genre;
+                _RequestParams (magazine);
+            }
+            else
+            {
+                Comic comic = (Comic) opus;
+
+                /* Setting up properties */
+                Console.WriteLine("Kiválasztott típús: képregény");
+                int genre = _RequestEnum(typeof(EGenre), "műfajt");
+                comic.Genre = (EGenre)genre;
+                _RequestParams(comic);
+            }
         }
 
         public static void Remove()
@@ -213,6 +241,167 @@ namespace Library
             Console.WriteLine("3. Mű törlése");
             Console.WriteLine("4. Kilépés a programból");
             Console.WriteLine("\n");
+        }
+
+        public static Opus _CreateObject()
+        {
+            do
+            {
+                Console.WriteLine("");
+                Console.WriteLine("** Kategoria menü: ");
+                Console.WriteLine("1. Regény");
+                Console.WriteLine("2. Enciklopédia");
+                Console.WriteLine("3. Újság");
+                Console.WriteLine("4. Képregény");
+                Console.WriteLine("5. Visszalépés az előző menübe");
+                Console.Write("* Kérem válasszon az alábbiak közül: ");
+                ConsoleKeyInfo input = Console.ReadKey();
+                Console.WriteLine("");
+                switch (input.Key)
+                {
+                    case ConsoleKey.NumPad1:
+                    case ConsoleKey.D1:
+                        /* regény */
+                        return new Novel();
+                        break;
+
+                    case ConsoleKey.NumPad2:
+                    case ConsoleKey.D2:
+                        /* enciklopédia */
+                        return new Encyclopedia();
+                        break;
+
+                    case ConsoleKey.NumPad3:
+                    case ConsoleKey.D3:
+                        /* újság */
+                        return new Magazine();
+                        break;
+
+                    case ConsoleKey.NumPad4:
+                    case ConsoleKey.D4:
+                        /* képregény */
+                        return new Comic();
+                        break;
+
+                    case ConsoleKey.NumPad5:
+                    case ConsoleKey.D5:
+                        Console.WriteLine("Vissza a menübe...");
+                        return null;
+                        break;
+
+                    default:
+                        break;
+                }
+
+            } while (true);
+        }
+
+        private static int _RequestEnum(Type t, string title)
+        {
+            // this utáni paramétereket kell csak átadni, mivel a this megadott paraméter maga az objektum amin keresztül meghivom, tehát ebben az esetben az e
+            //e.GetDescription();
+            do
+            {
+                Console.WriteLine($"*** Kérem válasszon {title}: ");
+                List<int> enumValues = new List<int>();
+
+                foreach (var item in Enum.GetValues(t))
+                {
+                    int poz = (int)item;
+                    enumValues.Add(poz);
+                    Console.WriteLine($"{poz}. {((Enum) item).GetDescription()}");
+                }
+
+                Console.Write("* Kérem válasszon: ");
+                string input = Console.ReadLine();
+                Console.WriteLine("");
+                int number;
+                if ( int.TryParse(input, out number))
+                {
+                    if (number == 0)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        if (enumValues.Contains(number))
+                        {
+                            return number;
+                        }
+                    }
+                }
+
+                Console.WriteLine("Hibás adat, adja meg újra!");
+            } while (true);
+        }
+
+        public static Opus _RequestParams(Opus o)
+        {
+            /* Szorgalmi: online available elérhető akkor kérje be csak az online urlt */
+
+            PropertyInfo[] props = o.GetType().GetProperties();
+            foreach (var item in props)
+            {
+                string propDescription = "";
+                var description = item.CustomAttributes.SingleOrDefault(a => a.AttributeType == typeof(DescriptionAttribute));
+                if (description == null)
+                {
+                    propDescription = item.Name;
+                }
+                else
+                {
+                    propDescription = description.ConstructorArguments[0].Value.ToString();
+                }
+
+                if ( item.PropertyType.BaseType == typeof(Enum))
+                {
+                    int res = _RequestEnum(item.PropertyType, $"{propDescription}");
+                    item.SetValue(o, res);
+
+                }
+                else if (item.PropertyType == typeof(int))
+                {
+                    /* Getting data from the commandline */
+                    Console.Write($"{propDescription}");
+                    int res;
+                    string inp;
+                    do
+                    {
+                        Console.Write($"{propDescription}: ");
+                        inp = Console.ReadLine();
+
+                    } while (!int.TryParse(inp, out res));
+                    item.SetValue(o, res);
+
+                }
+                else if (item.PropertyType == typeof(bool))
+                {
+                    /* Getting data from the commandline */
+                    Console.Write($"{propDescription} (I/H)");
+                    int res;
+                    string inp;
+                    do
+                    {
+                        Console.Write($"{propDescription}: ");
+                        inp = Console.ReadLine();
+
+                    } while (inp.ToLower() != "i" && inp.ToLower() != "h");
+                    item.SetValue(o, (inp.ToLower() == "i"));
+
+                }
+                else
+                {
+                    string inp;
+                    do
+                    {
+                        Console.Write($"{propDescription}: ");
+                        inp = Console.ReadLine();
+
+                    } while (string.IsNullOrEmpty(inp));
+                    item.SetValue(o, inp);
+                }
+            }
+            return o;
         }
     }
 }

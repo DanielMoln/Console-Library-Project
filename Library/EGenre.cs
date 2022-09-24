@@ -10,7 +10,7 @@ namespace Library
     public enum EGenre
     {
         [Description("Dráma")]
-        Drama,
+        Drama = 1,
         [Description("Akció")]
         Action,
         [Description("Kaland")]
